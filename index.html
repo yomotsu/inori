@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width">
+<title></title>
+<style>
+body{
+  margin: 0;
+  cursor: move;
+  cursor: -webkit-grab;
+  cursor: -moz-grab;
+  cursor: grab;
+}
+canvas{display: block;}
+.info{
+  color: #fff;
+  position: absolute;
+  top:0;
+  left: 0;
+  padding: 10px;
+  background: rgba(0,0,0,.5);
+}
+ul{
+  margin: 0;
+}
+a{
+  color: #05C7FF;
+}
+</style>
+</head>
+<body>
+<div class="info">
+  <ul>
+    <li>code: <a href="https://twitter.com/yomotsu">@yomotsu</a></li>
+    <li>model by <a href="http://seiga.nicovideo.jp/user/illust/5599296">bo-poin</a></li>
+  </ul>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="./assets/js/vendor/three.min.js"></script>
+<script src="./assets/js/vendor/SphereCamera.js"></script>
+<script src="./assets/js/vendor/perlin-noise-simplex.js"></script>
+<script>
+window.app = {};
+
+app.width  = window.innerWidth,
+app.height = window.innerHeight,
+app.scene,
+app.camera,
+app.renderer;
+app.rigidObjects = [];
+
+app.init = function () {
+  var BG_COLOR = 0xC8F8FF;
+
+  app.scene = new THREE.Scene();
+  app.scene.fog = new THREE.FogExp2( BG_COLOR, 0.02 );
+
+  app.camera = new THREE.PerspectiveCamera( 40, app.width / app.height, 1, 1000 );
+  app.camera.position.set( 0, 2.5, 8 );
+
+  app.renderer = new THREE.WebGLRenderer();
+  app.renderer.setSize( app.width, app.height );
+  app.renderer.setClearColor( BG_COLOR );
+  app.renderer.shadowMapEnabled = true;
+  document.body.appendChild( app.renderer.domElement );
+
+  var ambientLight = new THREE.AmbientLight( 0xffffff )
+  app.scene.add( ambientLight );
+
+  var directionalLight = new THREE.DirectionalLight( 0xffffff, .5 );
+  directionalLight.position.set( .5, 1, .5 ).normalize();
+  app.scene.add( directionalLight );
+
+  var spotLight = new THREE.SpotLight( 0xffffff, 0.2 );
+  spotLight.position.set( -10, 30, 20 );
+  spotLight.target.position.set( 0, 0, 0 );
+  spotLight.castShadow = true;
+  spotLight.shadowMapWidth = 1024;
+  spotLight.shadowMapHeight = 1024;
+  spotLight.shadowCameraFov = 60;
+  spotLight.shadowCameraNear = 1;
+  spotLight.shadowCameraFar = 300;
+  spotLight.shadowBias = -0.0003;
+  spotLight.shadowDarkness = 0.3;
+  // spotLight.shadowCameraVisible = true;
+  app.scene.add( spotLight );
+};
+
+app.renderLoop = function () {
+  requestAnimationFrame( app.renderLoop );
+  app.renderer.render( app.scene, app.camera );
+};
+
+app.addGround = function () {
+  var TEXTURE_DIFFUSE_URL = './assets/models/ground/diffuse.jpg';
+  var mesh;
+  var vertex;
+  var geometry = new THREE.PlaneGeometry( 200, 200, 64, 64 );
+  var diffuse;
+  var simplexNoise = new SimplexNoise;
+
+  for ( i = 0; i < geometry.vertices.length; i++ ) {
+    vertex = geometry.vertices[i];
+    vertex.z = simplexNoise.noise( vertex.x / 30, vertex.y / 30 ) / 1;
+  }
+  geometry.computeFaceNormals();
+  geometry.computeVertexNormals();
+
+  diffuse = THREE.ImageUtils.loadTexture( TEXTURE_DIFFUSE_URL );
+  diffuse.wrapS = diffuse.wrapT = THREE.RepeatWrapping;
+  diffuse.repeat.set( 64, 64 );
+
+  mesh = new THREE.Mesh(
+    geometry,
+    new THREE.MeshPhongMaterial( {
+      specular: 0x333333,
+      shininess: 25, 
+      map: diffuse,
+    } )
+  );
+  mesh.rotation.x = Math.PI / -2;
+  mesh.castShadow = false;
+  mesh.receiveShadow = true;
+  app.scene.add( mesh );
+  app.rigidObjects.push( mesh );
+};
+
+app.addInori = function () {
+  var loader = new THREE.JSONLoader();
+  loader.load( './assets/models/inori/inori.js', function( geometry, materials ) {
+    var inori = new THREE.SkinnedMesh(
+      geometry,
+      new THREE.MeshFaceMaterial( materials )
+    );
+    inori.traverse( function ( child ) {
+      child.castShadow = true;
+      child.receiveShadow = false;
+    } );
+    app.scene.add( inori );
+  } );
+};
+
+app.addLogo = function () {
+  var loader = new THREE.JSONLoader();
+  loader.load( './assets/models/logo/webgl-ie.js', function( geometry, materials ) {
+    var logo = new THREE.SkinnedMesh(
+      geometry,
+      new THREE.MeshFaceMaterial( materials )
+    );
+    logo.traverse( function ( child ) {
+      child.castShadow = true;
+      child.receiveShadow = false;
+    } );
+    logo.position.set( 0, 3, -6 );
+    logo.rotation.x = THREE.Math.degToRad( 90 );
+    logo.scale.set( 6, 6, 6 );
+    app.scene.add( logo );
+  } );
+};
+
+app.init();
+app.renderLoop();
+app.addGround();
+app.addInori();
+app.addLogo();
+
+new SphereCamera( app.camera, {
+  center: new THREE.Vector3( 0, 2.5, 0 ),
+  minRadius: 2,
+  radius: 8,
+  rigidObjects: app.rigidObjects
+} );
+</script>
+
+</body>
+</html>

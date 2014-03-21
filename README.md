@@ -1,0 +1,1 @@
+http://yomotsu.github.io/inori/index.html
