@@ -161,11 +161,20 @@ app.addLogo = function () {
   } );
 };
 
+app.onresize = function () {
+  app.width = window.innerWidth,
+  app.height = window.innerHeight;
+  app.renderer.setSize( app.width, app.height );
+  app.camera.aspect = app.width / app.height;
+  app.camera.updateProjectionMatrix();
+};
+
 app.init();
 app.renderLoop();
 app.addGround();
 app.addInori();
 app.addLogo();
+window.addEventListener( 'resize', app.onresize );
 
 new SphereCamera( app.camera, {
   center: new THREE.Vector3( 0, 2.5, 0 ),
@@ -173,6 +182,8 @@ new SphereCamera( app.camera, {
   radius: 8,
   rigidObjects: app.rigidObjects
 } );
+
+
 </script>
 
 </body>
