@@ -65,7 +65,7 @@ app.init = function () {
   app.camera = new THREE.PerspectiveCamera( 40, app.width / app.height, 1, 1000 );
   app.camera.position.set( 0, 2.5, 8 );
 
-  app.renderer = new THREE.WebGLRenderer();
+  app.renderer = new THREE.WebGLRenderer( { antialias: true } );
   app.renderer.setSize( app.width, app.height );
   app.renderer.setClearColor( BG_COLOR );
   app.renderer.shadowMapEnabled = true;
