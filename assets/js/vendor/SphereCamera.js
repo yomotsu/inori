@@ -113,7 +113,7 @@
     }
   };
 
-  function onmousedown () {
+  function onmousedown (event) {
     this.dispatchEvent( { type: 'mousedown' } );
     this._pointerStart.x = event.clientX;
     this._pointerStart.y = event.clientY;
@@ -128,7 +128,7 @@
     this.el.removeEventListener( 'mousemove', this._mousedragListener, false );
   }
 
-  function onmousedrag () {
+  function onmousedrag (event) {
     var w = this.$el.width();
     var h = this.$el.height();
     var x = ( this._pointerStart.x - event.clientX ) / w * 2;
@@ -138,7 +138,7 @@
     this.update();
   }
 
-  function onscroll () {
+  function onscroll (event) {
     event.preventDefault();
     // WebKit
     if ( event.wheelDeltaY ) {
